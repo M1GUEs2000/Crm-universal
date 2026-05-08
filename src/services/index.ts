@@ -1,12 +1,20 @@
-import { MockClienteService } from './mock/MockClienteService'
-import { MockCitaService } from './mock/MockCitaService'
-import { MockProductoService } from './mock/MockProductoService'
-import { MockTareaService } from './mock/MockTareaService'
-import { MockEstadisticaService } from './mock/MockEstadisticaService'
+import { createServices } from './serviceFactory'
 
-// Para conectar a una API real: reemplazar cada Mock por la implementación HTTP correspondiente.
-export const clienteService = new MockClienteService()
-export const citaService = new MockCitaService()
-export const productoService = new MockProductoService()
-export const tareaService = new MockTareaService()
-export const estadisticaService = new MockEstadisticaService()
+export type { AppServices, ServiceMode } from './serviceFactory'
+export type {
+  IClienteService,
+  ICitaService,
+  IProductoService,
+  ITareaService,
+  IEstadisticaService,
+} from './contracts'
+
+const services = createServices()
+
+export const {
+  clienteService,
+  citaService,
+  productoService,
+  tareaService,
+  estadisticaService,
+} = services

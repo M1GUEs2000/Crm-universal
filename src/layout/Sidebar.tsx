@@ -1,17 +1,6 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Users, Calendar, Clock, Package, BarChart2, Receipt, Settings, Lock } from 'lucide-react'
-import { modules } from '@/config/modules'
-
-const iconos: Record<string, React.ReactNode> = {
-  dashboard:    <LayoutDashboard size={18} />,
-  clientes:     <Users size={18} />,
-  calendario:   <Calendar size={18} />,
-  citas:        <Clock size={18} />,
-  productos:    <Package size={18} />,
-  estadisticas: <BarChart2 size={18} />,
-  facturacion:  <Receipt size={18} />,
-  configuracion:<Settings size={18} />,
-}
+import { Lock } from 'lucide-react'
+import { getNavigationModules } from '@/config/moduleRegistry'
 
 export default function Sidebar() {
   return (
@@ -21,21 +10,21 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4">
-        {modules.map(mod => {
+        {getNavigationModules().map(mod => {
+          const Icon = mod.icon
+
           if (mod.locked) {
             return (
               <div
                 key={mod.id}
                 className="flex items-center gap-3 px-6 py-2.5 text-sidebar-muted cursor-not-allowed select-none"
               >
-                {iconos[mod.id]}
+                <Icon size={18} />
                 <span className="text-sm">{mod.label}</span>
                 <Lock size={12} className="ml-auto" />
               </div>
             )
           }
-
-          if (!mod.enabled) return null
 
           return (
             <NavLink
@@ -50,7 +39,7 @@ export default function Sidebar() {
                 }`
               }
             >
-              {iconos[mod.id]}
+              <Icon size={18} />
               {mod.label}
             </NavLink>
           )

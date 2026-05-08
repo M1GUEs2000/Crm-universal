@@ -1,34 +1,17 @@
 import { createBrowserRouter } from 'react-router-dom'
-import Layout from '@/components/Layout'
-import DashboardPage from '@/modulos/dashboard'
-import ClientesPage from '@/modulos/clientes'
-import ClienteDetalle from '@/modulos/clientes/ClienteDetalle'
-import CalendarioPage from '@/modulos/calendario'
-import CitasPage from '@/modulos/citas'
-import ProductosPage from '@/modulos/productos'
-import EstadisticasPage from '@/modulos/estadisticas'
-import FacturacionPage from '@/modulos/facturacion'
-import ConfiguracionPage from '@/modulos/configuracion'
-import { modules } from '@/config/modules'
+import Layout from '@/layout/Layout'
+import { getEnabledModules } from '@/config/moduleRegistry'
 
-const routeElements: Record<string, React.ReactNode> = {
-  dashboard: <DashboardPage />,
-  clientes: <ClientesPage />,
-  calendario: <CalendarioPage />,
-  citas: <CitasPage />,
-  productos: <ProductosPage />,
-  estadisticas: <EstadisticasPage />,
-  facturacion: <FacturacionPage />,
-  configuracion: <ConfiguracionPage />,
-}
-
-const moduleRoutes = modules
-  .filter(mod => mod.enabled)
-  .map(mod => (
+const moduleRoutes = getEnabledModules()
+  .flatMap(mod => {
+    const mainRoute = (
     mod.path === '/'
-      ? { index: true as const, element: routeElements[mod.id] }
-      : { path: mod.path.slice(1), element: routeElements[mod.id] }
-  ))
+      ? { index: true as const, element: mod.element }
+      : { path: mod.path.slice(1), element: mod.element }
+    )
+
+    return [mainRoute, ...(mod.routes ?? [])]
+  })
 
 export const router = createBrowserRouter([
   {
@@ -36,7 +19,6 @@ export const router = createBrowserRouter([
     element: <Layout />,
     children: [
       ...moduleRoutes,
-      { path: 'clientes/:id',     element: <ClienteDetalle /> },
     ],
   },
 ])

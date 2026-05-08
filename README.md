@@ -35,14 +35,21 @@ npm.cmd run lint
 
 ```txt
 src/
+  app/
+    App.tsx     # providers y composicion principal de la app
   components/
     crud/       # piezas comunes para pantallas CRUD
     ui/         # botones, inputs, modales, tablas, tabs, etc.
   config/
-    modules.ts # registro de modulos activos/bloqueados
+    moduleRegistry.tsx # registro de modulos, rutas, iconos y componentes
+    modules.ts         # compatibilidad para consumir la lista de modulos
+  layout/
+    Layout.tsx
+    Navbar.tsx
+    Sidebar.tsx
   modulos/     # pantallas y logica por dominio
   router/      # rutas generadas desde la configuracion de modulos
-  services/    # interfaces y mocks
+  services/    # contracts, factory de servicios y mocks
   types/       # tipos comunes y tipos de dominio actuales
 ```
 
@@ -54,6 +61,7 @@ src/
 - Los CRUD simples deben compartir patrones visuales y de comportamiento.
 - Los modulos complejos pueden tener pantallas personalizadas sin romper el layout ni el tema.
 - La capa de servicios debe permitir cambiar mocks por API real sin reescribir la UI.
+- El router y el sidebar deben derivarse del registro de modulos, no de listas duplicadas.
 
 ## Siguiente direccion
 

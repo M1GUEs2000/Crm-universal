@@ -1,0 +1,5 @@
+export type { IClienteService } from '../interfaces/IClienteService'
+export type { ICitaService } from '../interfaces/ICitaService'
+export type { IProductoService } from '../interfaces/IProductoService'
+export type { ITareaService } from '../interfaces/ITareaService'
+export type { IEstadisticaService } from '../interfaces/IEstadisticaService'
