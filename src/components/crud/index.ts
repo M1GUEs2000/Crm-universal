@@ -1,4 +1,7 @@
 export { default as CrudPage } from './CrudPage'
 export { default as CrudContent } from './CrudContent'
 export { default as SearchBar } from './SearchBar'
+export { filterCrudItems } from './filterCrudItems'
 export type { SearchBarFilter } from './SearchBar'
+export type { CrudEntityConfig, CrudFilterDefinition, CrudColumnFactory } from './types'
+export type { CrudFilterValues } from './filterCrudItems'

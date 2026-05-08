@@ -38,7 +38,7 @@ src/
   app/
     App.tsx     # providers y composicion principal de la app
   components/
-    crud/       # piezas comunes para pantallas CRUD
+    crud/       # piezas comunes, contratos y helpers para pantallas CRUD
     ui/         # botones, inputs, modales, tablas, tabs, etc.
   config/
     moduleRegistry.tsx # registro de modulos, rutas, iconos y componentes
@@ -62,6 +62,7 @@ src/
 - Los modulos complejos pueden tener pantallas personalizadas sin romper el layout ni el tema.
 - La capa de servicios debe permitir cambiar mocks por API real sin reescribir la UI.
 - El router y el sidebar deben derivarse del registro de modulos, no de listas duplicadas.
+- Cada entidad puede declarar sus columnas, filtros, textos y busqueda desde su propio `config.tsx`.
 
 ## Siguiente direccion
 
