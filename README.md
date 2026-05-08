@@ -71,12 +71,13 @@ Para crear una variante del template para otro dominio:
 
 1. Edita `src/config/crm.config.ts`.
 2. Cambia `appName`, `shortName` y `description`.
-3. Activa, desactiva o bloquea modulos desde `modules`.
-4. Ajusta los labels si el dominio usa otro lenguaje. Ejemplo: `clientes` puede mostrarse como `Pacientes`, `Alumnos`, `Propietarios` o `Contactos`.
-5. En cada modulo, modifica su `config.tsx` para declarar columnas, filtros, busqueda y textos propios del dominio.
-6. Si el formulario necesita campos nuevos, edita el formulario del modulo y sus tipos locales.
+3. Ajusta el tema global en `src/index.css`, dentro del bloque `@theme`.
+4. Activa, desactiva o bloquea modulos desde `modules`.
+5. Ajusta los labels si el dominio usa otro lenguaje. Ejemplo: `clientes` puede mostrarse como `Pacientes`, `Alumnos`, `Propietarios` o `Contactos`.
+6. En cada modulo, modifica su `config.tsx` para declarar columnas, filtros, busqueda y textos propios del dominio.
+7. Si el formulario necesita campos nuevos, edita el formulario del modulo y sus tipos locales.
 
-Ejemplo:
+Ejemplo parcial:
 
 ```ts
 export const crmConfig = {
