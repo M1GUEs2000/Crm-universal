@@ -9,6 +9,8 @@ import ProductosPage from '@/modulos/productos'
 import EstadisticasPage from '@/modulos/estadisticas'
 import FacturacionPage from '@/modulos/facturacion'
 import ConfiguracionPage from '@/modulos/configuracion'
+import { crmConfig } from './crm.config'
+import type { ModuleVisibility } from './crm.config'
 
 export interface ModuleRoute {
   path: string
@@ -26,20 +28,27 @@ export interface AppModule {
   routes?: ModuleRoute[]
 }
 
-export const appModules: AppModule[] = [
+interface BaseModule extends Omit<AppModule, 'enabled' | 'locked'> {
+  defaultLabel: string
+  defaultVisibility: ModuleVisibility
+}
+
+const baseModules: BaseModule[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
+    defaultLabel: 'Dashboard',
     path: '/',
-    enabled: true,
+    defaultVisibility: 'enabled',
     icon: LayoutDashboard,
     element: <DashboardPage />,
   },
   {
     id: 'clientes',
     label: 'Clientes',
+    defaultLabel: 'Clientes',
     path: '/clientes',
-    enabled: true,
+    defaultVisibility: 'enabled',
     icon: Users,
     element: <ClientesPage />,
     routes: [{ path: 'clientes/:id', element: <ClienteDetalle /> }],
@@ -47,53 +56,77 @@ export const appModules: AppModule[] = [
   {
     id: 'calendario',
     label: 'Calendario',
+    defaultLabel: 'Calendario',
     path: '/calendario',
-    enabled: true,
+    defaultVisibility: 'enabled',
     icon: Calendar,
     element: <CalendarioPage />,
   },
   {
     id: 'citas',
     label: 'Citas',
+    defaultLabel: 'Citas',
     path: '/citas',
-    enabled: true,
+    defaultVisibility: 'enabled',
     icon: Clock,
     element: <CitasPage />,
   },
   {
     id: 'productos',
     label: 'Productos',
+    defaultLabel: 'Productos',
     path: '/productos',
-    enabled: true,
+    defaultVisibility: 'enabled',
     icon: Package,
     element: <ProductosPage />,
   },
   {
     id: 'estadisticas',
     label: 'Estadisticas',
+    defaultLabel: 'Estadisticas',
     path: '/estadisticas',
-    enabled: true,
+    defaultVisibility: 'enabled',
     icon: BarChart2,
     element: <EstadisticasPage />,
   },
   {
     id: 'facturacion',
     label: 'Facturacion',
+    defaultLabel: 'Facturacion',
     path: '/facturacion',
-    enabled: false,
-    locked: true,
+    defaultVisibility: 'locked',
     icon: Receipt,
     element: <FacturacionPage />,
   },
   {
     id: 'configuracion',
     label: 'Configuracion',
+    defaultLabel: 'Configuracion',
     path: '/configuracion',
-    enabled: true,
+    defaultVisibility: 'enabled',
     icon: Settings,
     element: <ConfiguracionPage />,
   },
 ]
+
+function resolveVisibility(id: string, fallback: ModuleVisibility) {
+  return crmConfig.modules[id]?.visibility ?? fallback
+}
+
+export const appModules: AppModule[] = baseModules.map(module => {
+  const visibility = resolveVisibility(module.id, module.defaultVisibility)
+
+  return {
+    id: module.id,
+    label: crmConfig.modules[module.id]?.label ?? module.defaultLabel,
+    path: module.path,
+    enabled: visibility === 'enabled',
+    locked: visibility === 'locked',
+    icon: module.icon,
+    element: module.element,
+    routes: module.routes,
+  }
+})
 
 export function getEnabledModules() {
   return appModules.filter(module => module.enabled)

@@ -1,12 +1,13 @@
 import { NavLink } from 'react-router-dom'
 import { Lock } from 'lucide-react'
 import { getNavigationModules } from '@/config/moduleRegistry'
+import { crmConfig } from '@/config/crm.config'
 
 export default function Sidebar() {
   return (
     <aside className="w-64 h-screen bg-sidebar text-sidebar-text flex flex-col shrink-0">
       <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
-        <span className="text-white font-semibold text-lg">CRM</span>
+        <span className="text-white font-semibold text-lg">{crmConfig.shortName}</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4">

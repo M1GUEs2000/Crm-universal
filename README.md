@@ -41,6 +41,7 @@ src/
     crud/       # piezas comunes, contratos y helpers para pantallas CRUD
     ui/         # botones, inputs, modales, tablas, tabs, etc.
   config/
+    crm.config.ts      # nombre, descripcion y modulos activos del CRM actual
     moduleRegistry.tsx # registro de modulos, rutas, iconos y componentes
     modules.ts         # compatibilidad para consumir la lista de modulos
   layout/
@@ -63,6 +64,32 @@ src/
 - La capa de servicios debe permitir cambiar mocks por API real sin reescribir la UI.
 - El router y el sidebar deben derivarse del registro de modulos, no de listas duplicadas.
 - Cada entidad puede declarar sus columnas, filtros, textos y busqueda desde su propio `config.tsx`.
+
+## Adaptar a otro CRM
+
+Para crear una variante del template para otro dominio:
+
+1. Edita `src/config/crm.config.ts`.
+2. Cambia `appName`, `shortName` y `description`.
+3. Activa, desactiva o bloquea modulos desde `modules`.
+4. Ajusta los labels si el dominio usa otro lenguaje. Ejemplo: `clientes` puede mostrarse como `Pacientes`, `Alumnos`, `Propietarios` o `Contactos`.
+5. En cada modulo, modifica su `config.tsx` para declarar columnas, filtros, busqueda y textos propios del dominio.
+6. Si el formulario necesita campos nuevos, edita el formulario del modulo y sus tipos locales.
+
+Ejemplo:
+
+```ts
+export const crmConfig = {
+  appName: 'CRM Clinica',
+  shortName: 'Clinica',
+  description: 'Gestion de pacientes, citas y servicios medicos.',
+  modules: {
+    clientes: { label: 'Pacientes', visibility: 'enabled' },
+    productos: { label: 'Servicios', visibility: 'enabled' },
+    facturacion: { visibility: 'locked' },
+  },
+}
+```
 
 ## Siguiente direccion
 
