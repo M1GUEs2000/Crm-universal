@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { TableColumn } from '@/components/ui'
 import type { SelectOption } from '@/components/ui/inputs'
+import type { ID, RespuestaApi, RespuestaPaginada } from '@/types'
 
 export interface CrudFilterDefinition {
   key: string
@@ -25,3 +26,16 @@ export interface CrudEntityConfig<TItem> {
 export type CrudColumnFactory<TItem, TActions = unknown> = (actions: TActions) => TableColumn<TItem>[]
 
 export type CrudFormRenderer = ReactNode
+
+export interface CrudService<TItem, TCreate, TUpdate> {
+  listar(pagina?: number, porPagina?: number): Promise<RespuestaPaginada<TItem>>
+  crear(dto: TCreate): Promise<RespuestaApi<TItem>>
+  actualizar(id: ID, dto: TUpdate): Promise<RespuestaApi<TItem>>
+  eliminar(id: ID): Promise<RespuestaApi<void>>
+}
+
+export interface CrudTableActions<TItem> {
+  editar: (item: TItem) => void
+  eliminar: (item: TItem) => void
+  verDetalle?: (item: TItem) => void
+}

@@ -1,11 +1,6 @@
 import { Avatar, Badge, Button } from '@/components/ui'
-import type { CrudColumnFactory, CrudEntityConfig } from '@/components/crud'
+import type { CrudColumnFactory, CrudEntityConfig, CrudTableActions } from '@/components/crud'
 import type { Cliente } from '@/types'
-
-export interface ClienteTableActions {
-  verDetalle: (cliente: Cliente) => void
-  eliminar: (cliente: Cliente) => void
-}
 
 export const clientesCrudConfig: CrudEntityConfig<Cliente> = {
   title: 'Clientes',
@@ -38,7 +33,7 @@ export const clientesCrudConfig: CrudEntityConfig<Cliente> = {
   getDeleteMessage: cliente => `¿Seguro que quieres eliminar a ${cliente.nombre}? Esta accion no se puede deshacer.`,
 }
 
-export const createClienteColumns: CrudColumnFactory<Cliente, ClienteTableActions> = actions => [
+export const createClienteColumns: CrudColumnFactory<Cliente, CrudTableActions<Cliente>> = actions => [
   {
     key: 'nombre',
     header: 'Cliente',
@@ -65,7 +60,7 @@ export const createClienteColumns: CrudColumnFactory<Cliente, ClienteTableAction
     header: '',
     render: cliente => (
       <div className="flex items-center gap-2 justify-end">
-        <Button variant="ghost" size="sm" onClick={() => actions.verDetalle(cliente)}>Ver</Button>
+        {actions.verDetalle && <Button variant="ghost" size="sm" onClick={() => actions.verDetalle?.(cliente)}>Ver</Button>}
         <Button variant="danger" size="sm" onClick={() => actions.eliminar(cliente)}>Eliminar</Button>
       </div>
     ),

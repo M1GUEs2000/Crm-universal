@@ -1,16 +1,12 @@
+import { createElement, lazy } from 'react'
 import type { ComponentType, ReactNode } from 'react'
 import { BarChart2, Calendar, Clock, LayoutDashboard, Package, Receipt, Settings, Users } from 'lucide-react'
-import DashboardPage from '@/modulos/dashboard'
-import ClientesPage from '@/modulos/clientes'
-import ClienteDetalle from '@/modulos/clientes/ClienteDetalle'
-import CalendarioPage from '@/modulos/calendario'
-import CitasPage from '@/modulos/citas'
-import ProductosPage from '@/modulos/productos'
-import EstadisticasPage from '@/modulos/estadisticas'
-import FacturacionPage from '@/modulos/facturacion'
-import ConfiguracionPage from '@/modulos/configuracion'
 import { crmConfig } from './crm.config'
 import type { ModuleVisibility } from './crm.config'
+
+function lazyElement(importer: () => Promise<{ default: ComponentType }>) {
+  return createElement(lazy(importer))
+}
 
 export interface ModuleRoute {
   path: string
@@ -41,7 +37,7 @@ const baseModules: BaseModule[] = [
     path: '/',
     defaultVisibility: 'enabled',
     icon: LayoutDashboard,
-    element: <DashboardPage />,
+    element: lazyElement(() => import('@/modulos/dashboard')),
   },
   {
     id: 'clientes',
@@ -50,8 +46,8 @@ const baseModules: BaseModule[] = [
     path: '/clientes',
     defaultVisibility: 'enabled',
     icon: Users,
-    element: <ClientesPage />,
-    routes: [{ path: 'clientes/:id', element: <ClienteDetalle /> }],
+    element: lazyElement(() => import('@/modulos/clientes')),
+    routes: [{ path: 'clientes/:id', element: lazyElement(() => import('@/modulos/clientes/ClienteDetalle')) }],
   },
   {
     id: 'calendario',
@@ -60,7 +56,7 @@ const baseModules: BaseModule[] = [
     path: '/calendario',
     defaultVisibility: 'enabled',
     icon: Calendar,
-    element: <CalendarioPage />,
+    element: lazyElement(() => import('@/modulos/calendario')),
   },
   {
     id: 'citas',
@@ -69,7 +65,7 @@ const baseModules: BaseModule[] = [
     path: '/citas',
     defaultVisibility: 'enabled',
     icon: Clock,
-    element: <CitasPage />,
+    element: lazyElement(() => import('@/modulos/citas')),
   },
   {
     id: 'productos',
@@ -78,7 +74,7 @@ const baseModules: BaseModule[] = [
     path: '/productos',
     defaultVisibility: 'enabled',
     icon: Package,
-    element: <ProductosPage />,
+    element: lazyElement(() => import('@/modulos/productos')),
   },
   {
     id: 'estadisticas',
@@ -87,7 +83,7 @@ const baseModules: BaseModule[] = [
     path: '/estadisticas',
     defaultVisibility: 'enabled',
     icon: BarChart2,
-    element: <EstadisticasPage />,
+    element: lazyElement(() => import('@/modulos/estadisticas')),
   },
   {
     id: 'facturacion',
@@ -96,7 +92,7 @@ const baseModules: BaseModule[] = [
     path: '/facturacion',
     defaultVisibility: 'locked',
     icon: Receipt,
-    element: <FacturacionPage />,
+    element: lazyElement(() => import('@/modulos/facturacion')),
   },
   {
     id: 'configuracion',
@@ -105,7 +101,7 @@ const baseModules: BaseModule[] = [
     path: '/configuracion',
     defaultVisibility: 'enabled',
     icon: Settings,
-    element: <ConfiguracionPage />,
+    element: lazyElement(() => import('@/modulos/configuracion')),
   },
 ]
 

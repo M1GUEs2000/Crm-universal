@@ -12,6 +12,7 @@ La idea del proyecto no es imponer un unico modelo de cliente, producto o cita. 
 - Sistema inicial de modulos activables en `src/config/modules.ts`.
 - Componentes UI compartidos en `src/components/ui`.
 - Componentes CRUD reutilizables en `src/components/crud`.
+- `CrudListPage` estandariza pantallas CRUD simples con servicio, columnas, filtros y formulario por modulo.
 - Servicios mock con interfaces para futura conexion HTTP.
 
 ## Comandos
@@ -64,6 +65,7 @@ src/
 - La capa de servicios debe permitir cambiar mocks por API real sin reescribir la UI.
 - El router y el sidebar deben derivarse del registro de modulos, no de listas duplicadas.
 - Cada entidad puede declarar sus columnas, filtros, textos y busqueda desde su propio `config.tsx`.
+- Los modulos no CRUD tambien pueden tener `config.tsx` para declarar KPIs, series o secciones propias sin forzarlos al patron CRUD.
 
 ## Adaptar a otro CRM
 
