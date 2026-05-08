@@ -14,7 +14,7 @@ interface Props<T> {
 
 export default function Table<T>({ columns, data, keyExtractor, loading, emptyText = 'No hay datos.' }: Props<T>) {
   if (loading) {
-    return <div className="py-10 text-center text-sm text-text-muted">Cargando...</div>
+    return <div role="status" className="py-10 text-center text-sm text-text-muted">Cargando...</div>
   }
 
   if (data.length === 0) {
@@ -27,7 +27,7 @@ export default function Table<T>({ columns, data, keyExtractor, loading, emptyTe
         <thead>
           <tr className="border-b border-border">
             {columns.map(col => (
-              <th key={col.key} className="text-left py-3 px-4 text-xs font-medium text-text-muted uppercase tracking-wide">
+              <th key={col.key} scope="col" className="text-left py-3 px-4 text-xs font-medium text-text-muted uppercase tracking-wide">
                 {col.header}
               </th>
             ))}

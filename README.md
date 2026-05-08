@@ -9,10 +9,13 @@ La idea del proyecto no es imponer un unico modelo de cliente, producto o cita. 
 - Base React + TypeScript + Vite.
 - Layout con sidebar y navbar.
 - Modulos iniciales: dashboard, clientes, calendario, citas, productos, estadisticas, facturacion y configuracion.
-- Sistema inicial de modulos activables en `src/config/modules.ts`.
+- Facturacion incluye emision mock de facturas, notas de credito y retenciones, alineada con los contratos de FacturacionUniversal.
+- Sistema de modulos activables desde `src/config/crm.config.ts` y desde Administrador.
+- Seleccion de empresa global desde Administrador.
 - Componentes UI compartidos en `src/components/ui`.
 - Componentes CRUD reutilizables en `src/components/crud`.
 - `CrudListPage` estandariza pantallas CRUD simples con servicio, columnas, filtros y formulario por modulo.
+- Declaracion base de campos variables en `src/config/entitySchemas.ts`.
 - Servicios mock con interfaces para futura conexion HTTP.
 
 ## Comandos
@@ -42,9 +45,13 @@ src/
     crud/       # piezas comunes, contratos y helpers para pantallas CRUD
     ui/         # botones, inputs, modales, tablas, tabs, etc.
   config/
-    crm.config.ts      # nombre, descripcion y modulos activos del CRM actual
+    crm.config.ts      # nombre, empresas, modo de datos y modulos activos
+    entitySchemas.ts   # mapa base de campos variables por entidad
     moduleRegistry.tsx # registro de modulos, rutas, iconos y componentes
     modules.ts         # compatibilidad para consumir la lista de modulos
+  docs/
+    ARRANQUE_NUEVO_CRM.md
+    GUIA_MODULOS.md
   layout/
     Layout.tsx
     Navbar.tsx
@@ -73,11 +80,19 @@ Para crear una variante del template para otro dominio:
 
 1. Edita `src/config/crm.config.ts`.
 2. Cambia `appName`, `shortName` y `description`.
-3. Ajusta el tema global en `src/index.css`, dentro del bloque `@theme`.
-4. Activa, desactiva o bloquea modulos desde `modules`.
-5. Ajusta los labels si el dominio usa otro lenguaje. Ejemplo: `clientes` puede mostrarse como `Pacientes`, `Alumnos`, `Propietarios` o `Contactos`.
-6. En cada modulo, modifica su `config.tsx` para declarar columnas, filtros, busqueda y textos propios del dominio.
-7. Si el formulario necesita campos nuevos, edita el formulario del modulo y sus tipos locales.
+3. Define `serviceMode`.
+4. Reemplaza `companies` y `defaultCompanyId`.
+5. Ajusta el tema global en `src/index.css`, dentro del bloque `@theme`.
+6. Activa, desactiva o bloquea modulos desde `modules`.
+7. Ajusta los labels si el dominio usa otro lenguaje. Ejemplo: `clientes` puede mostrarse como `Pacientes`, `Alumnos`, `Propietarios` o `Contactos`.
+8. Revisa `src/config/entitySchemas.ts` para declarar campos variables por entidad.
+9. En cada modulo, modifica su `config.tsx` para declarar columnas, filtros, busqueda y textos propios del dominio.
+10. Si el formulario necesita campos nuevos, edita el formulario del modulo y sus tipos locales.
+
+Guias operativas:
+
+- `docs/ARRANQUE_NUEVO_CRM.md`: checklist para copiar y arrancar otro CRM.
+- `docs/GUIA_MODULOS.md`: como crear, quitar o extender modulos.
 
 Ejemplo parcial:
 
@@ -86,13 +101,31 @@ export const crmConfig = {
   appName: 'CRM Clinica',
   shortName: 'Clinica',
   description: 'Gestion de pacientes, citas y servicios medicos.',
+  serviceMode: 'mock',
+  defaultCompanyId: 'matriz',
+  companies: [
+    { id: 'matriz', nombre: 'Clinica Matriz', ruc: '1799999999001', estab: '001', ptoEmi: '001' },
+  ],
   modules: {
     clientes: { label: 'Pacientes', visibility: 'enabled' },
     productos: { label: 'Servicios', visibility: 'enabled' },
-    facturacion: { visibility: 'locked' },
+    facturacion: { visibility: 'disabled' },
   },
 }
 ```
+
+## Nivel actual como template interno
+
+Este proyecto ya esta pensado para el flujo `copiar carpeta -> renombrar -> ajustar configuracion -> empezar CRM`.
+
+Las piezas principales de ese flujo son:
+
+- `crm.config.ts`: identidad, empresas, modo de datos y modulos.
+- `moduleRegistry.tsx`: rutas, iconos y submenus.
+- `entitySchemas.ts`: mapa inicial de campos variables.
+- `serviceFactory.ts`: punto unico para cambiar mock por API.
+- `docs/ARRANQUE_NUEVO_CRM.md`: checklist de arranque.
+- `docs/GUIA_MODULOS.md`: patron para modulos.
 
 ## Siguiente direccion
 
@@ -103,3 +136,4 @@ La siguiente evolucion recomendada es separar el nucleo del template de los modu
 - `modules/` o `modulos/` con configuracion propia por dominio.
 - `services/contracts`, `services/mock` y `services/http`.
 - `theme/` o `config/theme.config.ts` para branding reusable.
+- `DynamicEntityForm` si varios proyectos necesitan formularios 100% generados desde `entitySchemas`.

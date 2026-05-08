@@ -3,6 +3,7 @@ import { Temporal } from 'temporal-polyfill'
 import { useNextCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
 import { createViewMonthGrid, createViewWeek, createViewDay } from '@schedule-x/calendar'
 import type { CalendarEventExternal } from '@schedule-x/calendar'
+import '@schedule-x/theme-default/dist/calendar.css'
 import { citaService } from '@/services'
 import type { Cita } from '@/types'
 import { PageHeader, Modal, ConfirmDialog } from '@/components/ui'
@@ -108,15 +109,16 @@ export default function CalendarioPage() {
         title="Calendario"
         action={
           <button
+            type="button"
             onClick={() => { setFechaInicio(`${hoy}T09:00`); setModalCrear(true) }}
-            className="bg-primary text-primary-foreground rounded-button px-4 py-2 text-sm font-medium hover:bg-primary-hover transition-colors cursor-pointer"
+            className="bg-primary text-primary-foreground rounded-button px-4 py-2 text-sm font-medium hover:bg-primary-hover transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
           >
             + Nueva cita
           </button>
         }
       />
 
-      <div className="bg-surface rounded-card shadow-card overflow-hidden">
+      <div className="bg-surface rounded-card shadow-card overflow-hidden min-h-[720px] [&_.sx-react-calendar-wrapper]:h-[720px]">
         <ScheduleXCalendar calendarApp={calendar} />
       </div>
 

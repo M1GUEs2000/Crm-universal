@@ -3,12 +3,14 @@ interface Props {
   onChange: (checked: boolean) => void
   label?: string
   disabled?: boolean
+  id?: string
 }
 
-export default function Checkbox({ checked, onChange, label, disabled }: Props) {
+export default function Checkbox({ checked, onChange, label, disabled, id }: Props) {
   return (
-    <label className="flex items-center gap-2 cursor-pointer select-none">
+    <label htmlFor={id} className="flex items-center gap-2 cursor-pointer select-none">
       <input
+        id={id}
         type="checkbox"
         checked={checked}
         onChange={e => onChange(e.target.checked)}

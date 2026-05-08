@@ -3,12 +3,16 @@ import { MockCitaService } from './mock/MockCitaService'
 import { MockProductoService } from './mock/MockProductoService'
 import { MockTareaService } from './mock/MockTareaService'
 import { MockEstadisticaService } from './mock/MockEstadisticaService'
+import { MockFacturacionService } from './mock/MockFacturacionService'
+import { crmConfig } from '@/config/crm.config'
+import type { ServiceMode } from '@/config/crm.config'
 import type {
   IClienteService,
   ICitaService,
   IProductoService,
   ITareaService,
   IEstadisticaService,
+  IFacturacionService,
 } from './contracts'
 
 export interface AppServices {
@@ -17,13 +21,14 @@ export interface AppServices {
   productoService: IProductoService
   tareaService: ITareaService
   estadisticaService: IEstadisticaService
+  facturacionService: IFacturacionService
 }
 
-export type ServiceMode = 'mock'
+export type { ServiceMode }
 
-export function createServices(mode: ServiceMode = 'mock'): AppServices {
+export function createServices(mode: ServiceMode = crmConfig.serviceMode): AppServices {
   if (mode !== 'mock') {
-    throw new Error(`Modo de servicios no soportado: ${mode}`)
+    throw new Error(`Modo de servicios no implementado todavia: ${mode}`)
   }
 
   return {
@@ -32,5 +37,6 @@ export function createServices(mode: ServiceMode = 'mock'): AppServices {
     productoService: new MockProductoService(),
     tareaService: new MockTareaService(),
     estadisticaService: new MockEstadisticaService(),
+    facturacionService: new MockFacturacionService(),
   }
 }

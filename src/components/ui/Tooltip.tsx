@@ -1,3 +1,6 @@
+import { cloneElement, isValidElement, useId } from 'react'
+import type { ReactElement } from 'react'
+
 interface Props {
   text: string
   children: React.ReactNode
@@ -12,10 +15,21 @@ const positions = {
 }
 
 export default function Tooltip({ text, children, position = 'top' }: Props) {
+  const tooltipId = useId()
+  const child = isValidElement(children)
+    ? cloneElement(children as ReactElement<Record<string, unknown>>, {
+      'aria-describedby': tooltipId,
+    })
+    : children
+
   return (
     <div className="relative inline-flex group">
-      {children}
-      <span className={`absolute z-50 ${positions[position]} whitespace-nowrap rounded px-2 py-1 text-xs text-white bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity duration-fast pointer-events-none`}>
+      {child}
+      <span
+        id={tooltipId}
+        role="tooltip"
+        className={`absolute z-50 ${positions[position]} whitespace-nowrap rounded px-2 py-1 text-xs text-white bg-gray-800 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-fast pointer-events-none`}
+      >
         {text}
       </span>
     </div>

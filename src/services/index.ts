@@ -7,6 +7,7 @@ export type {
   IProductoService,
   ITareaService,
   IEstadisticaService,
+  IFacturacionService,
 } from './contracts'
 
 const services = createServices()
@@ -17,4 +18,5 @@ export const {
   productoService,
   tareaService,
   estadisticaService,
+  facturacionService,
 } = services

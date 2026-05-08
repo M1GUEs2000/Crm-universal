@@ -1,8 +1,10 @@
 import { createElement, lazy } from 'react'
 import type { ComponentType, ReactNode } from 'react'
-import { BarChart2, Calendar, Clock, LayoutDashboard, Package, Receipt, Settings, Users } from 'lucide-react'
+import { Navigate } from 'react-router-dom'
+import { BarChart2, Calendar, Clock, LayoutDashboard, Package, Receipt, Settings, Shield, Users } from 'lucide-react'
 import { crmConfig } from './crm.config'
 import type { ModuleVisibility } from './crm.config'
+import { getStoredModuleVisibility } from './modulePreferences'
 
 function lazyElement(importer: () => Promise<{ default: ComponentType }>) {
   return createElement(lazy(importer))
@@ -11,6 +13,11 @@ function lazyElement(importer: () => Promise<{ default: ComponentType }>) {
 export interface ModuleRoute {
   path: string
   element: ReactNode
+}
+
+export interface ModuleNavItem {
+  label: string
+  path: string
 }
 
 export interface AppModule {
@@ -22,6 +29,7 @@ export interface AppModule {
   icon: ComponentType<{ size?: number; className?: string }>
   element: ReactNode
   routes?: ModuleRoute[]
+  navItems?: ModuleNavItem[]
 }
 
 interface BaseModule extends Omit<AppModule, 'enabled' | 'locked'> {
@@ -92,7 +100,15 @@ const baseModules: BaseModule[] = [
     path: '/facturacion',
     defaultVisibility: 'locked',
     icon: Receipt,
-    element: lazyElement(() => import('@/modulos/facturacion')),
+    element: <Navigate to="/facturacion/documentos-electronicos" replace />,
+    routes: [
+      { path: 'facturacion/documentos-electronicos', element: lazyElement(() => import('@/modulos/facturacion')) },
+      { path: 'facturacion/consultas', element: lazyElement(() => import('@/modulos/facturacion/ConsultasFacturacion')) },
+    ],
+    navItems: [
+      { label: 'Documentos electronicos', path: '/facturacion/documentos-electronicos' },
+      { label: 'Consultas', path: '/facturacion/consultas' },
+    ],
   },
   {
     id: 'configuracion',
@@ -103,35 +119,49 @@ const baseModules: BaseModule[] = [
     icon: Settings,
     element: lazyElement(() => import('@/modulos/configuracion')),
   },
+  {
+    id: 'administrador',
+    label: 'Administrador',
+    defaultLabel: 'Administrador',
+    path: '/administrador',
+    defaultVisibility: 'enabled',
+    icon: Shield,
+    element: lazyElement(() => import('@/modulos/administrador')),
+  },
 ]
 
 function resolveVisibility(id: string, fallback: ModuleVisibility) {
-  return crmConfig.modules[id]?.visibility ?? fallback
+  return getStoredModuleVisibility(id) ?? crmConfig.modules[id]?.visibility ?? fallback
 }
 
-export const appModules: AppModule[] = baseModules.map(module => {
-  const visibility = resolveVisibility(module.id, module.defaultVisibility)
+export function resolveAppModules(): AppModule[] {
+  return baseModules.map(module => {
+    const visibility = resolveVisibility(module.id, module.defaultVisibility)
 
-  return {
-    id: module.id,
-    label: crmConfig.modules[module.id]?.label ?? module.defaultLabel,
-    path: module.path,
-    enabled: visibility === 'enabled',
-    locked: visibility === 'locked',
-    icon: module.icon,
-    element: module.element,
-    routes: module.routes,
-  }
-})
+    return {
+      id: module.id,
+      label: crmConfig.modules[module.id]?.label ?? module.defaultLabel,
+      path: module.path,
+      enabled: visibility === 'enabled',
+      locked: visibility === 'locked',
+      icon: module.icon,
+      element: module.element,
+      routes: module.routes,
+      navItems: module.navItems,
+    }
+  })
+}
+
+export const appModules: AppModule[] = resolveAppModules()
 
 export function getEnabledModules() {
-  return appModules.filter(module => module.enabled)
+  return resolveAppModules().filter(module => module.enabled)
 }
 
 export function getNavigationModules() {
-  return appModules.filter(module => module.enabled || module.locked)
+  return resolveAppModules().filter(module => module.enabled || module.locked)
 }
 
 export function findModuleByPath(pathname: string) {
-  return appModules.find(module => module.path === pathname || pathname.startsWith(`${module.path}/`))
+  return resolveAppModules().find(module => module.path === pathname || pathname.startsWith(`${module.path}/`))
 }

@@ -27,6 +27,14 @@ export default function ConfiguracionPage() {
             <dt className="text-xs text-text-muted mb-1">Descripcion</dt>
             <dd className="text-sm text-text">{crmConfig.description}</dd>
           </div>
+          <div>
+            <dt className="text-xs text-text-muted mb-1">Modo de datos</dt>
+            <dd className="text-sm font-medium text-text">{crmConfig.serviceMode}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-text-muted mb-1">Empresas</dt>
+            <dd className="text-sm font-medium text-text">{crmConfig.companies.length}</dd>
+          </div>
         </div>
       </Card>
 
