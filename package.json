@@ -1,5 +1,5 @@
 {
-  "name": "crm-temp",
+  "name": "crm-universal",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,12 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@schedule-x/calendar": "^4.5.0",
+    "@schedule-x/react": "^4.1.0",
     "@tailwindcss/vite": "^4.2.4",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.15.0",
-    "tailwindcss": "^4.2.4"
+    "tailwindcss": "^4.2.4",
+    "temporal-polyfill": "^0.3.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

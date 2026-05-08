@@ -31,7 +31,7 @@ export default function ClienteForm({ inicial, onGuardar, onCancelar }: Props) {
     }
     setErrores({})
     setGuardando(true)
-    await onGuardar(form)
+    await onGuardar(inicial ? form as ActualizarClienteDto : form as CrearClienteDto)
     setGuardando(false)
   }
 

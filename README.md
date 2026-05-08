@@ -1,73 +1,66 @@
-# React + TypeScript + Vite
+# CRM Universal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Plantilla base para construir CRMs modulares con React, TypeScript, Tailwind CSS y Vite.
 
-Currently, two official plugins are available:
+La idea del proyecto no es imponer un unico modelo de cliente, producto o cita. El objetivo es entregar un nucleo comun para navegacion, layout, tema, componentes UI, servicios y patrones CRUD, permitiendo que cada CRM active sus propios modulos y defina sus propios campos de negocio.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Estado actual
 
-## React Compiler
+- Base React + TypeScript + Vite.
+- Layout con sidebar y navbar.
+- Modulos iniciales: dashboard, clientes, calendario, citas, productos, estadisticas, facturacion y configuracion.
+- Sistema inicial de modulos activables en `src/config/modules.ts`.
+- Componentes UI compartidos en `src/components/ui`.
+- Componentes CRUD reutilizables en `src/components/crud`.
+- Servicios mock con interfaces para futura conexion HTTP.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Comandos
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
+npm run build
+npm run lint
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+En Windows, si PowerShell bloquea `npm.ps1`, usa:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm.cmd run build
+npm.cmd run lint
 ```
+
+## Estructura
+
+```txt
+src/
+  components/
+    crud/       # piezas comunes para pantallas CRUD
+    ui/         # botones, inputs, modales, tablas, tabs, etc.
+  config/
+    modules.ts # registro de modulos activos/bloqueados
+  modulos/     # pantallas y logica por dominio
+  router/      # rutas generadas desde la configuracion de modulos
+  services/    # interfaces y mocks
+  types/       # tipos comunes y tipos de dominio actuales
+```
+
+## Principios
+
+- El core debe ser estable y reutilizable.
+- Los modulos deben poder activarse, ocultarse o bloquearse desde configuracion.
+- Cada CRM puede definir campos distintos segun su dominio.
+- Los CRUD simples deben compartir patrones visuales y de comportamiento.
+- Los modulos complejos pueden tener pantallas personalizadas sin romper el layout ni el tema.
+- La capa de servicios debe permitir cambiar mocks por API real sin reescribir la UI.
+
+## Siguiente direccion
+
+La siguiente evolucion recomendada es separar el nucleo del template de los modulos de negocio:
+
+- `app/` para providers y arranque.
+- `layout/` para sidebar, navbar y shell visual.
+- `modules/` o `modulos/` con configuracion propia por dominio.
+- `services/contracts`, `services/mock` y `services/http`.
+- `theme/` o `config/theme.config.ts` para branding reusable.

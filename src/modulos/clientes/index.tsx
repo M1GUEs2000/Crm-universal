@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { clienteService } from '@/services'
 import type { Cliente } from '@/types'
-import { SearchInput, Select } from '@/components/ui/inputs'
-import { Button, Table, Badge, Avatar, Modal, ConfirmDialog, PageHeader, Spinner, Pagination } from '@/components/ui'
+import { CrudPage, CrudContent, SearchBar } from '@/components/crud'
+import { Button, Table, Badge, Avatar, Modal, ConfirmDialog, Pagination } from '@/components/ui'
 import type { TableColumn } from '@/components/ui'
 import ClienteForm from './ClienteForm'
 
@@ -21,14 +21,14 @@ export default function ClientesPage() {
   const [eliminando, setEliminando]     = useState<Cliente | null>(null)
   const [procesando, setProcesando]     = useState(false)
 
-  async function cargar(p = pagina) {
+  const cargar = useCallback(async (p = pagina) => {
     setCargando(true)
     const r = await clienteService.listar(p, POR_PAGINA)
     if (r.ok) { setClientes(r.datos); setTotal(r.paginacion.total) }
     setCargando(false)
-  }
+  }, [pagina])
 
-  useEffect(() => { cargar() }, [pagina])
+  useEffect(() => { cargar() }, [cargar])
 
   const visibles = clientes.filter(c => {
     const texto = `${c.nombre} ${c.apellido ?? ''} ${c.email ?? ''} ${c.empresa ?? ''}`.toLowerCase()
@@ -85,36 +85,27 @@ export default function ClientesPage() {
   ]
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Clientes"
-        action={<Button onClick={() => setModalCrear(true)}>+ Nuevo cliente</Button>}
+    <CrudPage title="Clientes" onNuevo={() => setModalCrear(true)} textoNuevo="+ Nuevo cliente">
+      <SearchBar
+        value={busqueda}
+        onChange={setBusqueda}
+        placeholder="Buscar por nombre, email, empresa..."
+        filters={[{
+          value: filtroEstado,
+          onChange: setFiltroEstado,
+          placeholder: 'Todos los estados',
+          options: [{ value: 'activo', label: 'Activo' }, { value: 'inactivo', label: 'Inactivo' }],
+        }]}
       />
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex-1">
-          <SearchInput value={busqueda} onChange={setBusqueda} placeholder="Buscar por nombre, email, empresa..." />
-        </div>
-        <Select
-          value={filtroEstado}
-          onChange={setFiltroEstado}
-          placeholder="Todos los estados"
-          options={[{ value: 'activo', label: 'Activo' }, { value: 'inactivo', label: 'Inactivo' }]}
-        />
-      </div>
-
-      <div className="bg-surface rounded-card shadow-card">
-        {cargando
-          ? <div className="flex justify-center py-10"><Spinner size="lg" /></div>
-          : <Table columns={columns} data={visibles} keyExtractor={c => c.id} emptyText="No se encontraron clientes." />
-        }
+      <CrudContent loading={cargando}>
+        <Table columns={columns} data={visibles} keyExtractor={c => c.id} emptyText="No se encontraron clientes." />
         <div className="px-4">
           <Pagination page={pagina} totalPages={Math.ceil(total / POR_PAGINA)} onChange={p => { setPagina(p); cargar(p) }} />
         </div>
-      </div>
+      </CrudContent>
 
       <Modal open={modalCrear} onClose={() => setModalCrear(false)} title="Nuevo cliente" width="lg">
-        <ClienteForm onGuardar={handleCrear} onCancelar={() => setModalCrear(false)} />
+        <ClienteForm onGuardar={dto => handleCrear(dto as Parameters<typeof clienteService.crear>[0])} onCancelar={() => setModalCrear(false)} />
       </Modal>
 
       <ConfirmDialog
@@ -125,6 +116,6 @@ export default function ClientesPage() {
         message={`¿Seguro que quieres eliminar a ${eliminando?.nombre}? Esta acción no se puede deshacer.`}
         loading={procesando}
       />
-    </div>
+    </CrudPage>
   )
 }
