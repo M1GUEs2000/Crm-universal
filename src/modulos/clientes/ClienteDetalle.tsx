@@ -43,7 +43,7 @@ export default function ClienteDetalle() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate('/clientes')} className="text-sm text-text-muted hover:text-text transition-colors cursor-pointer">
+        <button type="button" onClick={() => navigate('/clientes')} className="text-sm text-text-muted hover:text-text transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary rounded-button">
           ← Clientes
         </button>
       </div>

@@ -1,84 +1,101 @@
-# CLAUDE.md — CRM Universal
+# CLAUDE.md - CRM Universal
 
-Plantilla base reutilizable para proyectos CRM. React + TypeScript + Tailwind CSS (Vite). Para contexto de negocio, decisiones y estado del proyecto ver el vault: `d:\Obsidian\Bovedá\proyectos\crm-universal`.
+Plantilla base reutilizable para construir CRMs por copia del proyecto. React + TypeScript + Tailwind CSS + Vite.
 
-## Build & Run
+## Objetivo
+
+El flujo esperado es:
+
+1. Copiar carpeta.
+2. Renombrar proyecto.
+3. Ajustar `src/config/crm.config.ts`.
+4. Ajustar tema y campos del dominio.
+5. Empezar a desarrollar el CRM concreto.
+
+La app no busca ser un SaaS generico publicado. Es una base interna para acelerar nuevos CRMs.
+
+## Comandos
 
 ```bash
 npm install
-npm run dev       # servidor de desarrollo (Vite)
-npm run build     # build de producción
-npm run preview   # preview del build
+npm run dev
+npm run build
+npm run lint
+npm run preview
 ```
 
-## Estructura de carpetas
+En Windows, si PowerShell bloquea scripts:
 
-```
-crm-universal/
-├── src/
-│   ├── modulos/
-│   │   ├── dashboard/
-│   │   ├── clientes/
-│   │   ├── calendario/
-│   │   ├── citas/
-│   │   ├── productos/
-│   │   ├── estadisticas/
-│   │   ├── facturacion/      ← módulo activable (feature flag)
-│   │   └── configuracion/
-│   ├── components/           ← componentes compartidos
-│   ├── services/             ← capa de servicios (interfaces + mock)
-│   ├── types/                ← tipos e interfaces TypeScript
-│   ├── config/               ← feature flags y configuración
-│   └── router/               ← rutas de la app
+```bash
+npm.cmd run build
+npm.cmd run lint
 ```
 
-## Módulos
+## Estructura principal
 
-| Módulo | Ruta | Activable | Descripción |
-|---|---|---|---|
-| Dashboard | `/` | siempre | KPIs y resumen general |
-| Clientes | `/clientes` | siempre | Lista y ficha de clientes |
-| Calendario | `/calendario` | siempre | Vista de citas y eventos |
-| Citas | `/citas` | siempre | CRUD de citas (pendiente → confirmada → cancelada) |
-| Productos/Servicios | `/productos` | siempre | Catálogo con precios |
-| Estadísticas | `/estadisticas` | siempre | Métricas y reportes |
-| Facturación | `/facturacion` | ✅ feature flag | Placeholder → conecta a Facturación Universal API |
-| Configuración | `/configuracion` | siempre | Nombre, logo, módulos activos |
+```txt
+src/
+  app/                  # providers y composicion principal
+  components/
+    crud/               # piezas comunes para CRUD
+    ui/                 # sistema UI compartido
+  config/
+    crm.config.ts       # identidad, empresas, modo de datos y modulos
+    entitySchemas.ts    # campos variables por entidad
+    moduleRegistry.tsx  # rutas, iconos, subrutas y menu
+  layout/               # shell visual
+  modulos/              # dominios de negocio
+  router/               # rutas generadas desde modulos
+  services/             # interfaces, mocks y factory
+  types/                # tipos de dominio
+docs/
+  ARRANQUE_NUEVO_CRM.md
+  GUIA_MODULOS.md
+```
 
-## Reglas de código (OBLIGATORIAS)
+## Reglas del template
 
-### Manejo de errores
+- El core debe mantenerse pequeno, estable y reutilizable.
+- Los modulos se registran en `moduleRegistry.tsx`.
+- La visibilidad inicial vive en `crm.config.ts`.
+- Administrador puede activar/desactivar modulos en ejecucion.
+- Las empresas se declaran en `crm.config.ts`.
+- La empresa seleccionada se guarda como preferencia local.
+- Los CRUD simples deben usar `CrudListPage`.
+- Los modulos complejos pueden tener pantallas personalizadas.
+- Los servicios deben depender de interfaces en `src/services/contracts`.
+- `serviceMode` decide si se usan mocks o una futura API.
+- Los campos variables se documentan en `entitySchemas.ts` y se reflejan en tipos/formularios.
 
-- En servicios: propagar el error con contexto, nunca silenciar con `catch {}`
-- En UI: mostrar feedback al usuario, no pantallas en blanco
-- Con logger: `console.error('[Módulo] descripción', error)`
+## Modulos actuales
 
-### Seguridad
+| Modulo | Ruta | Estado |
+|---|---|---|
+| Dashboard | `/` | sistema |
+| Clientes | `/clientes` | CRUD |
+| Calendario | `/calendario` | calendario visual |
+| Citas | `/citas` | CRUD |
+| Productos | `/productos` | CRUD |
+| Estadisticas | `/estadisticas` | reportes |
+| Facturacion | `/facturacion` | submodulos |
+| Configuracion | `/configuracion` | sistema |
+| Administrador | `/administrador` | sistema |
 
-- **API calls**: nunca exponer tokens en el cliente — usar variables de entorno `VITE_*`
-- **Input del usuario**: validar antes de enviar a la API
-- **Credenciales**: nunca hardcodeadas — siempre en `.env.local`
+## Guias obligatorias antes de crear variantes
 
-## Cerebro del proyecto
+- Lee `docs/ARRANQUE_NUEVO_CRM.md` para copiar y adaptar el template.
+- Lee `docs/GUIA_MODULOS.md` para crear, quitar o extender modulos.
 
-> ⚠️ **OBLIGATORIO leer el vault PRIMERO.** Todo lo que no sea código técnico vive ahí: estado actual, pendientes, decisiones de arquitectura, análisis y contexto de negocio. No re-derivar esa información leyendo código — es un gasto de tokens innecesario.
+## Manejo de errores
 
-### Archivos de entrada obligatorios (leer en este orden)
+- En servicios: propagar el error con contexto.
+- En UI: mostrar feedback al usuario.
+- No silenciar errores con `catch {}`.
+- Si se usa logger temporal: `console.error('[Modulo] descripcion', error)`.
 
-| Archivo | Qué contiene |
-|---|---|
-| `d:\Obsidian\Bovedá\proyectos\crm-universal\README.md` | Estado actual, decisiones clave, stack |
-| `d:\Obsidian\Bovedá\proyectos\crm-universal\arquitectura-crm-universal.md` | Mapa de módulos y qué nodos están ✅ vs ⚠️ |
-| `d:\Obsidian\Bovedá\proyectos\crm-universal\tareas.md` | Tareas pendientes |
-| `d:\Obsidian\Bovedá\CLAUDE.md` | Convenciones del vault — leer solo si hay dudas de estructura |
+## Seguridad
 
-**Flujo de sesión:**
-1. Leer `README.md` → estado actual
-2. Leer `arquitectura-crm-universal.md` → qué nodos están ✅ vs ⚠️
-3. Ir al nodo `nodos/[modulo].md` si está ✅ — confiar en él, no leer código fuente
-4. Si el nodo está ⚠️ → leer código fuente y documentar el nodo al terminar
-5. Al cerrar sesión → actualizar `## 📌 Estado actual` en README
-
-### Post-commit — mantener nodos sincronizados
-
-Después de cada `git push`, GitHub Actions postea un comentario en el commit listando qué nodos del vault pueden estar desactualizados. **Revisar ese comentario y actualizar los nodos afectados en Obsidian antes de cerrar la sesión.** Ver `.github/node-map.yml` para el mapeo completo de archivos → nodos.
+- No exponer tokens en el cliente.
+- Usar variables `VITE_*` solo para datos publicos del frontend.
+- No hardcodear credenciales.
+- Validar input antes de enviarlo a servicios externos.

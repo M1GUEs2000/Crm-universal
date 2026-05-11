@@ -10,6 +10,6 @@ const sizes = {
 
 export default function Spinner({ size = 'md' }: Props) {
   return (
-    <div className={`${sizes[size]} rounded-full border-border border-t-primary animate-spin`} />
+    <div role="status" aria-label="Cargando" className={`${sizes[size]} rounded-full border-border border-t-primary animate-spin`} />
   )
 }

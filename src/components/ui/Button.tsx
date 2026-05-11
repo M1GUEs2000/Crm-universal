@@ -5,6 +5,7 @@ interface Props {
   disabled?: boolean
   type?: 'button' | 'submit'
   onClick?: () => void
+  ariaLabel?: string
   children: React.ReactNode
 }
 
@@ -20,12 +21,14 @@ const sizes = {
   md: 'px-4 py-2 text-sm',
 }
 
-export default function Button({ variant = 'primary', size = 'md', loading, disabled, type = 'button', onClick, children }: Props) {
+export default function Button({ variant = 'primary', size = 'md', loading, disabled, type = 'button', onClick, ariaLabel, children }: Props) {
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
+      aria-label={ariaLabel}
+      aria-busy={loading || undefined}
       className={`rounded-button font-medium transition-colors duration-fast focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 cursor-pointer ${variants[variant]} ${sizes[size]}`}
     >
       {loading ? 'Cargando...' : children}

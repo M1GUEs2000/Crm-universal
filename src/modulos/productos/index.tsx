@@ -1,3 +1,18 @@
+import { CrudListPage } from '@/components/crud'
+import { productoService } from '@/services'
+import type { ActualizarProductoDto, CrearProductoDto, Producto } from '@/types'
+import ProductoForm from './ProductoForm'
+import { createProductoColumns, productosCrudConfig } from './config'
+
 export default function ProductosPage() {
-  return <div className="p-6"><h1 className="text-xl font-semibold">Productos / Servicios</h1></div>
+  return (
+    <CrudListPage<Producto, CrearProductoDto, ActualizarProductoDto>
+      config={productosCrudConfig}
+      service={productoService}
+      columns={createProductoColumns}
+      renderForm={({ inicial, onGuardar, onCancelar }) => (
+        <ProductoForm inicial={inicial} onGuardar={onGuardar} onCancelar={onCancelar} />
+      )}
+    />
+  )
 }

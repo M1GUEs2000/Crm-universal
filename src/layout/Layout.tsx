@@ -8,7 +8,7 @@ export default function Layout() {
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Navbar />
-        <main className="flex-1 overflow-y-auto p-6 animate-fade-in">
+        <main id="contenido-principal" className="flex-1 overflow-y-auto p-6 animate-fade-in">
           <Outlet />
         </main>
       </div>
