@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { Badge, Card, PageHeader, Spinner, Table, Tabs } from '@/components/ui'
 import type { TableColumn } from '@/components/ui'
 import { facturacionService } from '@/services'
@@ -64,7 +65,6 @@ function DocumentosTable({ documentos, tipo }: { documentos: DocumentoFacturacio
 export default function FacturacionPage() {
   const [documentos, setDocumentos] = useState<DocumentoFacturacion[]>([])
   const [cargando, setCargando] = useState(true)
-  const [mensaje, setMensaje] = useState('')
 
   async function cargar() {
     setCargando(true)
@@ -76,27 +76,48 @@ export default function FacturacionPage() {
   useEffect(() => { cargar() }, [])
 
   async function emitirFactura(dto: EmitirFacturaDto) {
-    const r = await facturacionService.emitirFactura(dto)
-    if (r.ok) {
-      setMensaje(`Factura ${r.datos.numero} emitida y ${r.datos.estadoSri}.`)
-      await cargar()
-    }
+    await toast.promise(
+      facturacionService.emitirFactura(dto).then(r => {
+        if (!r.ok) throw new Error(r.mensaje ?? 'No se pudo emitir la factura.')
+        return r.datos
+      }),
+      {
+        loading: 'Enviando factura al SRI...',
+        success: datos => `Factura ${datos.numero} emitida — ${datos.estadoSri}`,
+        error: err => err.message,
+      },
+    )
+    await cargar()
   }
 
   async function emitirNotaCredito(dto: EmitirNotaCreditoDto) {
-    const r = await facturacionService.emitirNotaCredito(dto)
-    if (r.ok) {
-      setMensaje(`Nota de credito ${r.datos.numero} emitida y ${r.datos.estadoSri}.`)
-      await cargar()
-    }
+    await toast.promise(
+      facturacionService.emitirNotaCredito(dto).then(r => {
+        if (!r.ok) throw new Error(r.mensaje ?? 'No se pudo emitir la nota de credito.')
+        return r.datos
+      }),
+      {
+        loading: 'Enviando nota de credito al SRI...',
+        success: datos => `Nota de credito ${datos.numero} emitida — ${datos.estadoSri}`,
+        error: err => err.message,
+      },
+    )
+    await cargar()
   }
 
   async function emitirRetencion(dto: EmitirRetencionDto) {
-    const r = await facturacionService.emitirRetencion(dto)
-    if (r.ok) {
-      setMensaje(`Retencion ${r.datos.numero} emitida y ${r.datos.estadoSri}.`)
-      await cargar()
-    }
+    await toast.promise(
+      facturacionService.emitirRetencion(dto).then(r => {
+        if (!r.ok) throw new Error(r.mensaje ?? 'No se pudo emitir la retencion.')
+        return r.datos
+      }),
+      {
+        loading: 'Enviando retencion al SRI...',
+        success: datos => `Retencion ${datos.numero} emitida — ${datos.estadoSri}`,
+        error: err => err.message,
+      },
+    )
+    await cargar()
   }
 
   if (cargando) {
@@ -106,12 +127,6 @@ export default function FacturacionPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Documentos electronicos" />
-
-      {mensaje && (
-        <Card padding="sm" className="border border-green-200 bg-green-50">
-          <p className="text-sm text-green-700" role="status">{mensaje}</p>
-        </Card>
-      )}
 
       <Tabs
         tabs={facturacionTabs.map(tab => {

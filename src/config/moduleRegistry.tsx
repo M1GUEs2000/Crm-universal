@@ -102,10 +102,14 @@ const baseModules: BaseModule[] = [
     icon: Receipt,
     element: <Navigate to="/facturacion/documentos-electronicos" replace />,
     routes: [
+      { path: 'facturacion/datos-facturacion', element: lazyElement(() => import('@/modulos/facturacion/DatosFacturacion')) },
+      { path: 'facturacion/datos-empresa', element: <Navigate to="/facturacion/datos-facturacion" replace /> },
+      { path: 'facturacion/parametros', element: <Navigate to="/facturacion/datos-facturacion" replace /> },
       { path: 'facturacion/documentos-electronicos', element: lazyElement(() => import('@/modulos/facturacion')) },
       { path: 'facturacion/consultas', element: lazyElement(() => import('@/modulos/facturacion/ConsultasFacturacion')) },
     ],
     navItems: [
+      { label: 'Datos de Facturacion', path: '/facturacion/datos-facturacion' },
       { label: 'Documentos electronicos', path: '/facturacion/documentos-electronicos' },
       { label: 'Consultas', path: '/facturacion/consultas' },
     ],

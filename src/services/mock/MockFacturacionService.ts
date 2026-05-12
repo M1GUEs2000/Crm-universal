@@ -1,5 +1,6 @@
 import type { IFacturacionService } from '../interfaces/IFacturacionService'
-import type { DocumentoFacturacion, EmitirFacturaDto, EmitirNotaCreditoDto, EmitirRetencionDto, TipoDocumentoFacturacion } from '@/types'
+import type { DocumentoFacturacion, EmitirFacturaDto, EmitirNotaCreditoDto, EmitirRetencionDto, EmpresaFacturacion, GuardarEmpresaFacturacionDto, ParametrosFacturacionModulo, ParametrosFacturacionSri, SecuencialSriFacturacion, TipoDocumentoFacturacion } from '@/types'
+import { getSelectedCompany } from '@/config/companyPreferences'
 
 const documentos: DocumentoFacturacion[] = [
   {
@@ -27,8 +28,83 @@ const documentos: DocumentoFacturacion[] = [
 ]
 
 let nextId = 2
+const empresaStorageKey = 'crm-universal:facturacion:empresa'
+const parametrosStorageKey = 'crm-universal:facturacion:parametros'
 
 const ok = <T>(datos: T) => ({ ok: true, datos })
+
+function empresaInicial(): EmpresaFacturacion {
+  const company = getSelectedCompany()
+
+  return {
+    ruc: company.ruc,
+    nombre: company.nombre,
+    nombreComercial: '',
+    dirMatriz: '',
+    cuenta: { id: 'mock-cuenta', plan: 'starter', maxEmpresas: 2, maxUsuarios: 5, fechaExpira: null },
+    certificadoConfigurado: false,
+  }
+}
+
+function puedeUsarStorage() {
+  return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+}
+
+function leerEmpresa(): EmpresaFacturacion {
+  if (!puedeUsarStorage()) return empresaInicial()
+
+  const guardada = window.localStorage.getItem(empresaStorageKey)
+  if (!guardada) return empresaInicial()
+
+  return JSON.parse(guardada) as EmpresaFacturacion
+}
+
+function guardarEmpresaStorage(empresa: EmpresaFacturacion) {
+  if (!puedeUsarStorage()) return
+
+  window.localStorage.setItem(empresaStorageKey, JSON.stringify(empresa))
+}
+
+function parametrosIniciales(empresa: EmpresaFacturacion): ParametrosFacturacionModulo {
+  const company = getSelectedCompany()
+
+  return {
+    sri: [
+      { empresaRuc: empresa.ruc, tipoComprobante: '01', secuencial: 1, codigoNumerico: '00000000' },
+      { empresaRuc: empresa.ruc, tipoComprobante: '04', secuencial: 1, codigoNumerico: '00000000' },
+      { empresaRuc: empresa.ruc, tipoComprobante: '07', secuencial: 1, codigoNumerico: '00000000' },
+    ],
+    facturacion: {
+      empresaRuc: empresa.ruc,
+      ambiente: 'pruebas',
+      tipoEmision: '1',
+      agenteRetencion: false,
+      contribuyenteRimpe: '',
+      estab: company.estab,
+      puntoEmision: company.ptoEmi,
+      contribuyenteEspecial: '',
+      obligadoContabilidad: false,
+      moneda: 'USD',
+      codigoImpuesto: '2',
+      codigoPorcentaje: 4,
+    },
+  }
+}
+
+function leerParametros(): ParametrosFacturacionModulo {
+  const empresa = leerEmpresa()
+  if (!puedeUsarStorage()) return parametrosIniciales(empresa)
+
+  const guardados = window.localStorage.getItem(parametrosStorageKey)
+  if (!guardados) return parametrosIniciales(empresa)
+
+  return JSON.parse(guardados) as ParametrosFacturacionModulo
+}
+
+function guardarParametrosStorage(parametros: ParametrosFacturacionModulo) {
+  if (!puedeUsarStorage()) return
+  window.localStorage.setItem(parametrosStorageKey, JSON.stringify(parametros))
+}
 
 function numero(estab: string, ptoEmi: string, secuencial: string) {
   return `${estab}-${ptoEmi}-${secuencial}`
@@ -67,6 +143,58 @@ function crearDocumento(input: {
 export class MockFacturacionService implements IFacturacionService {
   async listar() {
     return ok(documentos)
+  }
+
+  async listarEmpresas() {
+    return ok([leerEmpresa()])
+  }
+
+  async obtenerEmpresa() {
+    return ok(leerEmpresa())
+  }
+
+  async guardarEmpresa(dto: GuardarEmpresaFacturacionDto) {
+    const actual = leerEmpresa()
+    const empresa: EmpresaFacturacion = {
+      ...actual,
+      ...dto,
+      logo: dto.logo ?? actual.logo,
+      certificadoP12: dto.certificadoP12 ?? actual.certificadoP12,
+      certificadoConfigurado: Boolean(dto.certificadoP12 ?? actual.certificadoP12),
+      actualizadoEn: new Date().toISOString(),
+    }
+
+    guardarEmpresaStorage(empresa)
+    return ok(empresa)
+  }
+
+  async obtenerParametros() {
+    return ok(leerParametros())
+  }
+
+  async obtenerParametrosPorRuc(_ruc: string) {
+    return this.obtenerParametros()
+  }
+
+  async guardarSecuencialSri(dto: SecuencialSriFacturacion) {
+    const parametros = leerParametros()
+    parametros.sri = parametros.sri.map(item =>
+      item.tipoComprobante === dto.tipoComprobante
+        ? { ...dto, fechaActualizacion: new Date().toISOString() }
+        : item,
+    )
+    guardarParametrosStorage(parametros)
+    return ok(dto)
+  }
+
+  async guardarParametrosFacturacion(dto: ParametrosFacturacionSri) {
+    const parametros = leerParametros()
+    parametros.facturacion = {
+      ...dto,
+      fechaActualizacion: new Date().toISOString(),
+    }
+    guardarParametrosStorage(parametros)
+    return ok(parametros.facturacion)
   }
 
   async emitirFactura(dto: EmitirFacturaDto) {

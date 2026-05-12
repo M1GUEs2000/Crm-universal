@@ -1,36 +1,26 @@
 import { useState } from 'react'
 import { Form, FormActions, FormField, FormGrid, FormSection } from '@/components/ui'
 import { Input, NumberInput, Select, Textarea } from '@/components/ui/inputs'
-import { getSelectedCompany } from '@/config/companyPreferences'
-import type { AmbienteFacturacion, EmitirFacturaDto, EmitirNotaCreditoDto, EmitirRetencionDto } from '@/types'
+import {
+  ambienteFacturacionOptions,
+  ivaSriOptions,
+  retencionesSriOptions,
+  tarifaIvaDesdeCodigo,
+  tipoIdentificacionOptions,
+  tipoIdentificacionRetencionOptions,
+  tipoImpuestoRetencionOptions,
+} from '@/constants/facturacionSri'
+import type { AmbienteFacturacion, CodigoImpuestoRetencionSri, CodigoIvaSri, EmitirNotaCreditoDto, EmitirRetencionDto } from '@/types'
 
-const ambienteOptions = [
-  { value: 'pruebas', label: 'Pruebas' },
-  { value: 'produccion', label: 'Produccion' },
-]
-
-const identificacionOptions = [
-  { value: '04', label: 'RUC' },
-  { value: '05', label: 'Cedula' },
-  { value: '06', label: 'Pasaporte' },
-  { value: '07', label: 'Consumidor final' },
-]
-
-const ivaOptions = [
-  { value: '0', label: '0%' },
-  { value: '12', label: '12%' },
-  { value: '15', label: '15%' },
-]
+export { FacturaForm } from './facturas/FacturaForm'
 
 function crearBaseDocumento() {
-  const company = getSelectedCompany()
-
   return {
-    empresaRuc: company.ruc,
+    empresaRuc: '',
     ambiente: 'pruebas' as AmbienteFacturacion,
-    estab: company.estab,
-    ptoEmi: company.ptoEmi,
-    secuencial: '000000002',
+    estab: '',
+    ptoEmi: '',
+    secuencial: '',
     fechaEmision: new Date().toISOString().slice(0, 10),
   }
 }
@@ -45,58 +35,20 @@ interface Props<T> {
   onEmitir: (dto: T) => Promise<void>
 }
 
-export function FacturaForm({ onEmitir }: Props<EmitirFacturaDto>) {
-  const [guardando, setGuardando] = useState(false)
-  const [form, setForm] = useState({
-    ...crearBaseDocumento(),
-    tipoIdentificacionComprador: '05',
-    identificacionComprador: '9999999999',
-    razonSocialComprador: 'Cliente Demo',
-    direccionComprador: '',
-    formaPago: '01',
-    codigoPrincipal: 'SERV-001',
-    descripcion: 'Servicio profesional',
-    cantidad: 1,
-    precioUnitario: 100,
-    descuento: 0,
-    ivaTarifa: 12,
-  })
-
-  const set = (key: string) => (value: string | number | '') => setForm(actual => ({ ...actual, [key]: value }))
-  const totales = totalDetalle(Number(form.cantidad), Number(form.precioUnitario), Number(form.descuento), Number(form.ivaTarifa))
-
-  async function handleSubmit() {
-    setGuardando(true)
-    await onEmitir({
-      ...form,
-      cantidad: undefined,
-      precioUnitario: undefined,
-      descuento: undefined,
-      ivaTarifa: undefined,
-      totalSinImpuestos: totales.subtotal,
-      totalDescuento: Number(form.descuento),
-      valorIva: totales.iva,
-      importeTotal: totales.total,
-      detalle: {
-        codigoPrincipal: form.codigoPrincipal,
-        descripcion: form.descripcion,
-        cantidad: Number(form.cantidad),
-        precioUnitario: Number(form.precioUnitario),
-        descuento: Number(form.descuento),
-        ivaTarifa: Number(form.ivaTarifa),
-      },
-    } as EmitirFacturaDto)
-    setGuardando(false)
-  }
-
-  return (
-    <Form onSubmit={handleSubmit}>
-      <DocumentoBaseFields form={form} set={set} sujeto="Comprador" />
-      <DetalleVentaFields form={form} set={set} />
-      <ResumenTotal subtotal={totales.subtotal} iva={totales.iva} total={totales.total} />
-      <FormActions submitText="Emitir factura" loading={guardando} />
-    </Form>
-  )
+type RetencionFormState = ReturnType<typeof crearBaseDocumento> & {
+  tipoIdentificacionSujeto: '04' | '05' | '06'
+  identificacionSujeto: string
+  razonSocialSujeto: string
+  direccionSujeto: string
+  periodoFiscal: string
+  codigoImpuesto: CodigoImpuestoRetencionSri
+  codigoRetencion: string
+  codDocSustento: string
+  numDocSustento: string
+  fechaEmisionDocSustento: string
+  totalBaseImponible: number
+  totalRetencionRenta: number
+  totalRetencionIva: number
 }
 
 export function NotaCreditoForm({ onEmitir }: Props<EmitirNotaCreditoDto>) {
@@ -118,11 +70,12 @@ export function NotaCreditoForm({ onEmitir }: Props<EmitirNotaCreditoDto>) {
     cantidad: 1,
     precioUnitario: 50,
     descuento: 0,
-    ivaTarifa: 12,
+    ivaCodigo: 2 as CodigoIvaSri,
   })
 
   const set = (key: string) => (value: string | number | '') => setForm(actual => ({ ...actual, [key]: value }))
-  const totales = totalDetalle(Number(form.cantidad), Number(form.precioUnitario), Number(form.descuento), Number(form.ivaTarifa))
+  const ivaTarifa = tarifaIvaDesdeCodigo(Number(form.ivaCodigo) as CodigoIvaSri)
+  const totales = totalDetalle(Number(form.cantidad), Number(form.precioUnitario), Number(form.descuento), ivaTarifa)
 
   async function handleSubmit() {
     setGuardando(true)
@@ -131,7 +84,7 @@ export function NotaCreditoForm({ onEmitir }: Props<EmitirNotaCreditoDto>) {
       cantidad: undefined,
       precioUnitario: undefined,
       descuento: undefined,
-      ivaTarifa: undefined,
+      ivaCodigo: undefined,
       totalSinImpuestos: totales.subtotal,
       totalDescuento: Number(form.descuento),
       valorIva: totales.iva,
@@ -142,7 +95,8 @@ export function NotaCreditoForm({ onEmitir }: Props<EmitirNotaCreditoDto>) {
         cantidad: Number(form.cantidad),
         precioUnitario: Number(form.precioUnitario),
         descuento: Number(form.descuento),
-        ivaTarifa: Number(form.ivaTarifa),
+        ivaCodigo: Number(form.ivaCodigo) as CodigoIvaSri,
+        ivaTarifa,
       },
     } as EmitirNotaCreditoDto)
     setGuardando(false)
@@ -179,15 +133,15 @@ export function NotaCreditoForm({ onEmitir }: Props<EmitirNotaCreditoDto>) {
 
 export function RetencionForm({ onEmitir }: Props<EmitirRetencionDto>) {
   const [guardando, setGuardando] = useState(false)
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<RetencionFormState>({
     ...crearBaseDocumento(),
     secuencial: '000000002',
-    tipoIdentificacionSujeto: '04',
+    tipoIdentificacionSujeto: '04' as const,
     identificacionSujeto: '0999999999001',
     razonSocialSujeto: 'Proveedor Demo',
     direccionSujeto: '',
     periodoFiscal: '05/2026',
-    codigoImpuesto: '1',
+    codigoImpuesto: '1' as const,
     codigoRetencion: '332',
     codDocSustento: '01',
     numDocSustento: '001-001-000000001',
@@ -198,6 +152,12 @@ export function RetencionForm({ onEmitir }: Props<EmitirRetencionDto>) {
   })
 
   const set = (key: string) => (value: string | number | '') => setForm(actual => ({ ...actual, [key]: value }))
+  const retencionOptions = retencionesSriOptions
+    .filter(option => option.tipoImpuesto === form.codigoImpuesto)
+    .map(option => ({
+      value: option.codigo,
+      label: `${option.codigo} - ${option.descripcion} (${option.porcentaje}%)`,
+    }))
   const totalRetenido = Number(form.totalRetencionRenta) + Number(form.totalRetencionIva)
 
   async function handleSubmit() {
@@ -215,10 +175,14 @@ export function RetencionForm({ onEmitir }: Props<EmitirRetencionDto>) {
             <Input value={form.periodoFiscal} onChange={set('periodoFiscal')} placeholder="MM/YYYY" />
           </FormField>
           <FormField label="Codigo impuesto">
-            <Input value={form.codigoImpuesto} onChange={set('codigoImpuesto')} />
+            <Select value={form.codigoImpuesto} onChange={value => {
+              const next = value as CodigoImpuestoRetencionSri
+              const first = retencionesSriOptions.find(option => option.tipoImpuesto === next)
+              setForm(actual => ({ ...actual, codigoImpuesto: next, codigoRetencion: first?.codigo ?? '' }))
+            }} options={tipoImpuestoRetencionOptions} />
           </FormField>
           <FormField label="Codigo retencion">
-            <Input value={form.codigoRetencion} onChange={set('codigoRetencion')} />
+            <Select value={form.codigoRetencion} onChange={set('codigoRetencion')} options={retencionOptions} />
           </FormField>
           <FormField label="Doc. sustento">
             <Input value={form.numDocSustento} onChange={set('numDocSustento')} />
@@ -257,7 +221,7 @@ function DocumentoBaseFields({ form, set, sujeto }: { form: Record<string, strin
             <Input value={String(form.empresaRuc)} onChange={set('empresaRuc')} />
           </FormField>
           <FormField label="Ambiente">
-            <Select value={String(form.ambiente)} onChange={set('ambiente')} options={ambienteOptions} />
+            <Select value={String(form.ambiente)} onChange={set('ambiente')} options={ambienteFacturacionOptions} />
           </FormField>
           <FormField label="Fecha emision">
             <Input type="date" value={String(form.fechaEmision)} onChange={set('fechaEmision')} />
@@ -277,7 +241,11 @@ function DocumentoBaseFields({ form, set, sujeto }: { form: Record<string, strin
       <FormSection title={sujeto}>
         <FormGrid>
           <FormField label="Tipo identificacion">
-            <Select value={String(form[tipoKey])} onChange={set(tipoKey)} options={identificacionOptions} />
+            <Select
+              value={String(form[tipoKey])}
+              onChange={set(tipoKey)}
+              options={sujeto === 'Comprador' ? tipoIdentificacionOptions : tipoIdentificacionRetencionOptions}
+            />
           </FormField>
           <FormField label="Identificacion">
             <Input value={String(form[identificacionKey])} onChange={set(identificacionKey)} />
@@ -314,7 +282,11 @@ function DetalleVentaFields({ form, set }: { form: Record<string, string | numbe
           <NumberInput value={Number(form.descuento)} onChange={set('descuento')} min={0} step={0.01} />
         </FormField>
         <FormField label="IVA">
-          <Select value={String(form.ivaTarifa)} onChange={set('ivaTarifa')} options={ivaOptions} />
+          <Select
+            value={String(form.ivaCodigo)}
+            onChange={value => set('ivaCodigo')(Number(value) as CodigoIvaSri)}
+            options={ivaSriOptions.map(option => ({ value: String(option.value), label: option.label }))}
+          />
         </FormField>
       </FormGrid>
     </FormSection>

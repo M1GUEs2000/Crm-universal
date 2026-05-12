@@ -6,11 +6,23 @@ export type { Tarea, CrearTareaDto, ActualizarTareaDto, EstadoTarea, PrioridadTa
 export type { KpiCard, PuntoGrafico, ResumenDashboard } from './estadistica'
 export type {
   AmbienteFacturacion,
+  ArchivoEmpresaFacturacion,
+  CodigoImpuestoRetencionSri,
+  CodigoIvaSri,
+  CodigoRetencionSri,
   DetalleDocumentoRequest,
   DocumentoFacturacion,
   EmitirFacturaDto,
   EmitirNotaCreditoDto,
   EmitirRetencionDto,
+  EmpresaFacturacion,
   EstadoSriDocumento,
+  GuardarEmpresaFacturacionDto,
+  ParametrosFacturacionModulo,
+  ParametrosFacturacionSri,
+  SecuencialSriFacturacion,
+  TipoIdentificacionRetencionSri,
+  TipoIdentificacionSri,
+  TipoComprobanteSri,
   TipoDocumentoFacturacion,
 } from './facturacion'

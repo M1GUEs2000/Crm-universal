@@ -4,6 +4,7 @@ interface Props {
   placeholder?: string
   value: string
   onChange: (value: string) => void
+  onBlur?: () => void
   type?: string
   disabled?: boolean
   name?: string
@@ -12,7 +13,7 @@ interface Props {
   'aria-invalid'?: boolean
 }
 
-export default function Input({ label, error, placeholder, value, onChange, type = 'text', disabled, name, id, 'aria-describedby': ariaDescribedBy, 'aria-invalid': ariaInvalid }: Props) {
+export default function Input({ label, error, placeholder, value, onChange, onBlur, type = 'text', disabled, name, id, 'aria-describedby': ariaDescribedBy, 'aria-invalid': ariaInvalid }: Props) {
   return (
     <div className="flex flex-col gap-1">
       {label && <label htmlFor={id} className="text-sm text-text-muted">{label}</label>}
@@ -22,6 +23,7 @@ export default function Input({ label, error, placeholder, value, onChange, type
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
+        onBlur={onBlur}
         placeholder={placeholder}
         disabled={disabled}
         aria-describedby={ariaDescribedBy}

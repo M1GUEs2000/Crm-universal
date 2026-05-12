@@ -3,7 +3,7 @@ import { MockCitaService } from './mock/MockCitaService'
 import { MockProductoService } from './mock/MockProductoService'
 import { MockTareaService } from './mock/MockTareaService'
 import { MockEstadisticaService } from './mock/MockEstadisticaService'
-import { MockFacturacionService } from './mock/MockFacturacionService'
+import { FacturacionApiService } from './api/FacturacionApiService'
 import { crmConfig } from '@/config/crm.config'
 import type { ServiceMode } from '@/config/crm.config'
 import type {
@@ -37,6 +37,6 @@ export function createServices(mode: ServiceMode = crmConfig.serviceMode): AppSe
     productoService: new MockProductoService(),
     tareaService: new MockTareaService(),
     estadisticaService: new MockEstadisticaService(),
-    facturacionService: new MockFacturacionService(),
+    facturacionService: new FacturacionApiService(),
   }
 }
