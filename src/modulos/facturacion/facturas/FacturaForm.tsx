@@ -91,6 +91,7 @@ export function FacturaForm({ onEmitir }: Props) {
       },
     })
     setGuardando(false)
+    cargarParametros(form.empresaRuc)
   }
 
   const empresaOptions = empresas.map(e => ({
@@ -133,7 +134,7 @@ export function FacturaForm({ onEmitir }: Props) {
             <Input value={form.ptoEmi} onChange={set('ptoEmi')} placeholder={cargandoParams ? 'Cargando...' : ''} />
           </FormField>
           <FormField label="Secuencial">
-            <Input value={form.secuencial} onChange={set('secuencial')} placeholder={cargandoParams ? 'Cargando...' : ''} />
+            <Input value={form.secuencial} onChange={set('secuencial')} placeholder={cargandoParams ? 'Cargando...' : 'Sin configurar'} disabled />
           </FormField>
         </FormGrid>
       </FormSection>

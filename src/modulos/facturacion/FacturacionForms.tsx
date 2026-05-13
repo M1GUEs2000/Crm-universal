@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Form, FormActions, FormField, FormGrid, FormSection } from '@/components/ui'
 import { Input, NumberInput, Select, Textarea } from '@/components/ui/inputs'
 import {
@@ -10,6 +11,7 @@ import {
   tipoIdentificacionRetencionOptions,
   tipoImpuestoRetencionOptions,
 } from '@/constants/facturacionSri'
+import { facturacionService } from '@/services'
 import type { AmbienteFacturacion, CodigoImpuestoRetencionSri, CodigoIvaSri, EmitirNotaCreditoDto, EmitirRetencionDto } from '@/types'
 
 export { FacturaForm } from './facturas/FacturaForm'
@@ -53,9 +55,10 @@ type RetencionFormState = ReturnType<typeof crearBaseDocumento> & {
 
 export function NotaCreditoForm({ onEmitir }: Props<EmitirNotaCreditoDto>) {
   const [guardando, setGuardando] = useState(false)
+  const [cargandoParams, setCargandoParams] = useState(false)
   const [form, setForm] = useState({
     ...crearBaseDocumento(),
-    secuencial: '000000003',
+    secuencial: '',
     tipoIdentificacionComprador: '05',
     identificacionComprador: '9999999999',
     razonSocialComprador: 'Cliente Demo',
@@ -76,6 +79,26 @@ export function NotaCreditoForm({ onEmitir }: Props<EmitirNotaCreditoDto>) {
   const set = (key: string) => (value: string | number | '') => setForm(actual => ({ ...actual, [key]: value }))
   const ivaTarifa = tarifaIvaDesdeCodigo(Number(form.ivaCodigo) as CodigoIvaSri)
   const totales = totalDetalle(Number(form.cantidad), Number(form.precioUnitario), Number(form.descuento), ivaTarifa)
+
+  async function cargarParametros(ruc: string) {
+    if (!ruc) return
+    setCargandoParams(true)
+    const r = await facturacionService.obtenerParametrosPorRuc(ruc)
+    setCargandoParams(false)
+    if (!r.ok) {
+      toast.info(r.mensaje ?? 'No hay parametros configurados para ese RUC.')
+      return
+    }
+    const { facturacion, sri } = r.datos
+    const sec = sri.find(s => s.tipoComprobante === '04')
+    setForm(actual => ({
+      ...actual,
+      ambiente: facturacion.ambiente,
+      estab: facturacion.estab,
+      ptoEmi: facturacion.puntoEmision,
+      secuencial: sec ? String(sec.secuencial).padStart(9, '0') : actual.secuencial,
+    }))
+  }
 
   async function handleSubmit() {
     setGuardando(true)
@@ -100,11 +123,12 @@ export function NotaCreditoForm({ onEmitir }: Props<EmitirNotaCreditoDto>) {
       },
     } as EmitirNotaCreditoDto)
     setGuardando(false)
+    cargarParametros(form.empresaRuc)
   }
 
   return (
     <Form onSubmit={handleSubmit}>
-      <DocumentoBaseFields form={form} set={set} sujeto="Comprador" />
+      <DocumentoBaseFields form={form} set={set} sujeto="Comprador" cargandoParams={cargandoParams} onRucChange={cargarParametros} />
       <FormSection title="Documento modificado">
         <FormGrid>
           <FormField label="Tipo documento">
@@ -133,9 +157,10 @@ export function NotaCreditoForm({ onEmitir }: Props<EmitirNotaCreditoDto>) {
 
 export function RetencionForm({ onEmitir }: Props<EmitirRetencionDto>) {
   const [guardando, setGuardando] = useState(false)
+  const [cargandoParams, setCargandoParams] = useState(false)
   const [form, setForm] = useState<RetencionFormState>({
     ...crearBaseDocumento(),
-    secuencial: '000000002',
+    secuencial: '',
     tipoIdentificacionSujeto: '04' as const,
     identificacionSujeto: '0999999999001',
     razonSocialSujeto: 'Proveedor Demo',
@@ -152,6 +177,27 @@ export function RetencionForm({ onEmitir }: Props<EmitirRetencionDto>) {
   })
 
   const set = (key: string) => (value: string | number | '') => setForm(actual => ({ ...actual, [key]: value }))
+
+  async function cargarParametros(ruc: string) {
+    if (!ruc) return
+    setCargandoParams(true)
+    const r = await facturacionService.obtenerParametrosPorRuc(ruc)
+    setCargandoParams(false)
+    if (!r.ok) {
+      toast.info(r.mensaje ?? 'No hay parametros configurados para ese RUC.')
+      return
+    }
+    const { facturacion, sri } = r.datos
+    const sec = sri.find(s => s.tipoComprobante === '07')
+    setForm(actual => ({
+      ...actual,
+      ambiente: facturacion.ambiente,
+      estab: facturacion.estab,
+      ptoEmi: facturacion.puntoEmision,
+      secuencial: sec ? String(sec.secuencial).padStart(9, '0') : actual.secuencial,
+    }))
+  }
+
   const retencionOptions = retencionesSriOptions
     .filter(option => option.tipoImpuesto === form.codigoImpuesto)
     .map(option => ({
@@ -164,11 +210,12 @@ export function RetencionForm({ onEmitir }: Props<EmitirRetencionDto>) {
     setGuardando(true)
     await onEmitir({ ...form, totalRetenido })
     setGuardando(false)
+    cargarParametros(form.empresaRuc)
   }
 
   return (
     <Form onSubmit={handleSubmit}>
-      <DocumentoBaseFields form={form} set={set} sujeto="Sujeto retenido" />
+      <DocumentoBaseFields form={form} set={set} sujeto="Sujeto retenido" cargandoParams={cargandoParams} onRucChange={cargarParametros} />
       <FormSection title="Sustento y retencion">
         <FormGrid>
           <FormField label="Periodo fiscal">
@@ -207,33 +254,44 @@ export function RetencionForm({ onEmitir }: Props<EmitirRetencionDto>) {
   )
 }
 
-function DocumentoBaseFields({ form, set, sujeto }: { form: Record<string, string | number>; set: (key: string) => (value: string | number | '') => void; sujeto: string }) {
+function DocumentoBaseFields({ form, set, sujeto, cargandoParams = false, onRucChange }: {
+  form: Record<string, string | number>
+  set: (key: string) => (value: string | number | '') => void
+  sujeto: string
+  cargandoParams?: boolean
+  onRucChange?: (ruc: string) => void
+}) {
   const tipoKey = sujeto === 'Comprador' ? 'tipoIdentificacionComprador' : 'tipoIdentificacionSujeto'
   const identificacionKey = sujeto === 'Comprador' ? 'identificacionComprador' : 'identificacionSujeto'
   const razonSocialKey = sujeto === 'Comprador' ? 'razonSocialComprador' : 'razonSocialSujeto'
   const direccionKey = sujeto === 'Comprador' ? 'direccionComprador' : 'direccionSujeto'
+
+  function handleRucChange(ruc: string) {
+    set('empresaRuc')(ruc)
+    onRucChange?.(ruc)
+  }
 
   return (
     <>
       <FormSection title="Documento">
         <FormGrid cols={3}>
           <FormField label="Empresa RUC">
-            <Input value={String(form.empresaRuc)} onChange={set('empresaRuc')} />
+            <Input value={String(form.empresaRuc)} onChange={handleRucChange} />
           </FormField>
           <FormField label="Ambiente">
-            <Select value={String(form.ambiente)} onChange={set('ambiente')} options={ambienteFacturacionOptions} />
+            <Select value={String(form.ambiente)} onChange={set('ambiente')} options={ambienteFacturacionOptions} disabled={cargandoParams} />
           </FormField>
           <FormField label="Fecha emision">
             <Input type="date" value={String(form.fechaEmision)} onChange={set('fechaEmision')} />
           </FormField>
           <FormField label="Estab.">
-            <Input value={String(form.estab)} onChange={set('estab')} />
+            <Input value={String(form.estab)} onChange={set('estab')} placeholder={cargandoParams ? 'Cargando...' : ''} />
           </FormField>
           <FormField label="Pto. Emi.">
-            <Input value={String(form.ptoEmi)} onChange={set('ptoEmi')} />
+            <Input value={String(form.ptoEmi)} onChange={set('ptoEmi')} placeholder={cargandoParams ? 'Cargando...' : ''} />
           </FormField>
           <FormField label="Secuencial">
-            <Input value={String(form.secuencial)} onChange={set('secuencial')} />
+            <Input value={String(form.secuencial)} onChange={set('secuencial')} placeholder={cargandoParams ? 'Cargando...' : 'Sin configurar'} disabled />
           </FormField>
         </FormGrid>
       </FormSection>
