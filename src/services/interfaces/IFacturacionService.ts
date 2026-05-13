@@ -9,6 +9,7 @@ export interface IFacturacionService {
   obtenerParametrosPorRuc(ruc: string): Promise<RespuestaApi<ParametrosFacturacionModulo>>
   guardarSecuencialSri(dto: SecuencialSriFacturacion): Promise<RespuestaApi<SecuencialSriFacturacion>>
   guardarParametrosFacturacion(dto: ParametrosFacturacionSri): Promise<RespuestaApi<ParametrosFacturacionSri>>
+  previewFactura(dto: EmitirFacturaDto): Promise<RespuestaApi<Blob>>
   emitirFactura(dto: EmitirFacturaDto): Promise<RespuestaApi<DocumentoFacturacion>>
   emitirNotaCredito(dto: EmitirNotaCreditoDto): Promise<RespuestaApi<DocumentoFacturacion>>
   emitirRetencion(dto: EmitirRetencionDto): Promise<RespuestaApi<DocumentoFacturacion>>

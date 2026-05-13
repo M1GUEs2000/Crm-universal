@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Form, FormActions, FormField, FormGrid, FormSection } from '@/components/ui'
+import { Form, FormField, FormGrid, FormSection } from '@/components/ui'
+import Button from '@/components/ui/Button'
 import { Input, NumberInput, Select } from '@/components/ui/inputs'
 import { ivaSriOptions, tarifaIvaDesdeCodigo, tipoIdentificacionOptions, ambienteFacturacionOptions } from '@/constants/facturacionSri'
 import { facturacionService } from '@/services'
@@ -19,6 +20,7 @@ interface Props {
 
 export function FacturaForm({ onEmitir }: Props) {
   const [guardando, setGuardando] = useState(false)
+  const [previsualizando, setPrevisualizando] = useState(false)
   const [cargandoParams, setCargandoParams] = useState(false)
   const [empresas, setEmpresas] = useState<EmpresaFacturacion[]>([])
   const [form, setForm] = useState(defaultFormState)
@@ -62,9 +64,8 @@ export function FacturaForm({ onEmitir }: Props) {
     cargarParametros(ruc)
   }
 
-  async function handleSubmit() {
-    setGuardando(true)
-    await onEmitir({
+  function buildDto(): EmitirFacturaDto {
+    return {
       empresaRuc: form.empresaRuc,
       ambiente: form.ambiente,
       estab: form.estab,
@@ -89,7 +90,27 @@ export function FacturaForm({ onEmitir }: Props) {
         ivaCodigo: Number(form.ivaCodigo) as CodigoIvaSri,
         ivaTarifa,
       },
-    })
+    }
+  }
+
+  async function handlePreview() {
+    setPrevisualizando(true)
+    const r = await facturacionService.previewFactura(buildDto())
+    setPrevisualizando(false)
+
+    if (!r.ok) {
+      toast.error(r.mensaje ?? 'No se pudo generar el preview.')
+      return
+    }
+
+    const url = URL.createObjectURL(r.datos)
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  }
+
+  async function handleSubmit() {
+    setGuardando(true)
+    await onEmitir(buildDto())
     setGuardando(false)
     cargarParametros(form.empresaRuc)
   }
@@ -206,7 +227,14 @@ export function FacturaForm({ onEmitir }: Props) {
         </div>
       </div>
 
-      <FormActions submitText="Emitir factura" loading={guardando} />
+      <div className="flex justify-end gap-2 pt-2 border-t border-border">
+        <Button variant="secondary" onClick={handlePreview} loading={previsualizando} disabled={guardando}>
+          Vista previa
+        </Button>
+        <Button type="submit" loading={guardando} disabled={previsualizando}>
+          Emitir factura
+        </Button>
+      </div>
     </Form>
   )
 }

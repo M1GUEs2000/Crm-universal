@@ -109,11 +109,12 @@ function mapEmpresa(response: EmpresaResponse): EmpresaFacturacion {
 async function leerError(response: Response) {
   try {
     const body = await response.json()
-    return body.error ?? body.title ?? body.detail ?? `Error HTTP ${response.status}`
+    return body.detail ?? body.error ?? body.title ?? `Error HTTP ${response.status}`
   } catch {
     return `Error HTTP ${response.status}`
   }
 }
+
 
 function fileToBase64(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -151,6 +152,28 @@ async function requestApi<T>(path: string, init?: RequestInit) {
 
   logger.debug(`[facturacion] ${method} ${path} → ${response.status}`)
   return response.json() as Promise<T>
+}
+
+async function requestBlob(path: string, init?: RequestInit) {
+  const method = init?.method ?? 'POST'
+  logger.debug(`[facturacion] ${method} ${path}`)
+
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...init?.headers,
+    },
+    ...init,
+  })
+
+  if (!response.ok) {
+    const mensaje = await leerError(response)
+    logger.error(`[facturacion] ${method} ${path} → ${response.status}`, mensaje)
+    throw new ApiError(mensaje, response.status)
+  }
+
+  logger.debug(`[facturacion] ${method} ${path} → ${response.status}`)
+  return response.blob()
 }
 
 async function obtenerEmpresaPorRuc(ruc: string) {
@@ -424,6 +447,57 @@ export class FacturacionApiService implements IFacturacionService {
     } catch (err) {
       logger.error('[facturacion] guardarParametrosFacturacion falló', err)
       return error(err instanceof Error ? err.message : 'No se pudieron guardar los parametros.', dto)
+    }
+  }
+
+  async previewFactura(dto: EmitirFacturaDto): Promise<RespuestaApi<Blob>> {
+    try {
+      const d = dto.detalle
+      const precioTotalSinImpuesto = Math.max(d.cantidad * d.precioUnitario - d.descuento, 0)
+      const ivaValor = precioTotalSinImpuesto * (d.ivaTarifa / 100)
+
+      const blob = await requestBlob('/facturas/preview', {
+        method: 'POST',
+        body: JSON.stringify({
+          empresaRuc: dto.empresaRuc,
+          ambiente: ambienteApiValue(dto.ambiente),
+          estab: dto.estab,
+          ptoEmi: dto.ptoEmi,
+          secuencial: dto.secuencial,
+          fechaEmision: dto.fechaEmision,
+          tipoIdentificacionComprador: dto.tipoIdentificacionComprador,
+          identificacionComprador: dto.identificacionComprador,
+          razonSocialComprador: dto.razonSocialComprador,
+          direccionComprador: dto.direccionComprador ?? null,
+          totalSinImpuestos: dto.totalSinImpuestos,
+          totalDescuento: dto.totalDescuento,
+          baseImponibleIva: dto.totalSinImpuestos,
+          valorIva: dto.valorIva,
+          propina: 0,
+          importeTotal: dto.importeTotal,
+          formasPago: [{ codigo: dto.formaPago, total: dto.importeTotal }],
+          infoAdicional: [],
+          detalle: [{
+            orden: 1,
+            codigoPrincipal: d.codigoPrincipal,
+            descripcion: d.descripcion,
+            cantidad: d.cantidad,
+            precioUnitario: d.precioUnitario,
+            descuento: d.descuento,
+            precioTotalSinImpuesto,
+            ivaCodigo: d.ivaCodigo,
+            ivaTarifa: d.ivaTarifa,
+            ivaBase: precioTotalSinImpuesto,
+            ivaValor,
+          }],
+        }),
+      })
+
+      logger.info('[facturacion] preview generado')
+      return { ok: true, datos: blob }
+    } catch (err) {
+      logger.error('[facturacion] previewFactura falló', err)
+      return { ok: false, datos: new Blob(), mensaje: err instanceof Error ? err.message : 'No se pudo generar el preview.' }
     }
   }
 
